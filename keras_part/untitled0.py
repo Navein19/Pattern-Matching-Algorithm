@@ -15,16 +15,65 @@ import cv2
 
 
 
+import winsound
+frequency = 2500  # Set Frequency To 2500 Hertz
+duration = 1000  # Set Duration To 1000 ms == 1 second
+
+
+count=1
+stabilize=0
+
+prev=[]
+
+occurence=[]
 #load your model here MNIST-CNN.model
 
 model = load_model("MNIST-CNN.model")
 
 
+def CountFrequency(my_list): 
+  
+    # Creating an empty dictionary  
+    freq = {} 
+    for item in my_list: 
+        if (item in freq): 
+            freq[item] += 1
+        else: 
+            freq[item] = 1
+    print(freq)     
+    MaxDictVal = max(freq, key=freq.get)
+    return MaxDictVal      
+  
+    
 
+def Sort(sub_li): 
+    sub_li.sort(key = lambda x: x[0]) 
+    return sub_li 
+
+def check(no,c):
+    global count
+    
+    if(no==count):
+        count=count+1
+        winsound.Beep(5000, duration)
+    
+    if(no!=count and no>count):
+        winsound.Beep(frequency, duration)
+        
+    global stabilize
+    
+    stabilize=0
+    
+    global  occurence
+    
+    occurence=[]
+        
 
 
 
 #load  video
+
+pred_no=[]
 
 cap = cv2.VideoCapture(0)
 
@@ -73,11 +122,42 @@ while(True):
 
     _,ctrs,_ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    cv2.drawContours(image,ctrs,-1,(255,255,0),2)
+    
+    
+    
+    fin_ctrs=[]
+    
+    for ctr in ctrs:
+        area = cv2.contourArea(ctr)
+        
+        if(area>1000):
+            fin_ctrs.append(ctr)
+            
+    cv2.drawContours(image,fin_ctrs,-1,(255,255,0),2)        
+        
 
-    rects = [cv2.boundingRect(ctr) for ctr in ctrs]
-
-    for rect in rects:
+    rects = [cv2.boundingRect(ctr) for ctr in fin_ctrs]
+    
+    no_detected=""
+    
+    
+    
+    rectss=Sort(rects)
+    
+    
+  
+ 
+    
+    
+    prev=pred_no
+    pred_no=[]
+    for rect in rectss:
+        
+       
+        
+        
+        
+        
 
         x,y,w,h = rect
 
@@ -115,12 +195,34 @@ while(True):
             pred_array = np.argmax(pred_array)
             
 
-            print('Result: {0}'.format(pred_array))
+            #print('Result: {0}'.format(pred_array))
 
             cv2.putText(image, str(pred_array), (rect[0], rect[1]),cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 3)
+            
+            pred_no.append(pred_array)
+            
+            #no_detected.join(pred_array)
 
     #show frame
+    
+    
+    
+    if(pred_no==prev and pred_no!=[]):
+        stabilize=stabilize+1
+        occurence.extend(pred_no)
+    
+    
 
+    if((pred_no!=[])):
+       
+       s = [str(i) for i in pred_no] 
+       res = int("".join(s))
+       print(res)
+       if(stabilize>200):
+           
+           confident=CountFrequency(occurence)
+           
+           check(confident,count)
     cv2.imshow("Result",image)
 
    
@@ -135,4 +237,3 @@ cv2.destroyAllWindows()
 
 cap.release()
 
-out.release()
