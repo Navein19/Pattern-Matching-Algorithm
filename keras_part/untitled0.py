@@ -40,8 +40,26 @@ def CountFrequency(my_list):
             freq[item] += 1
         else: 
             freq[item] = 1
-    print(freq)     
-    MaxDictVal = max(freq, key=freq.get)
+     
+
+    global count
+    if(count>9):
+        MaxDictVal = max(freq, key=freq.get)
+        del freq[MaxDictVal]
+        
+        MaxDictVal1 =max(freq, key=freq.get)
+        
+        if MaxDictVal1>MaxDictVal:
+            MaxDictVal=MaxDictVal*10+MaxDictVal1
+        
+        else:
+            MaxDictVal=MaxDictVal1*10+MaxDictVal
+            
+    else:
+        MaxDictVal = max(freq, key=freq.get)
+        
+            
+
     return MaxDictVal      
   
     
@@ -96,7 +114,7 @@ while(True):
     mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
     
     # join my masks
-    mask = mask0+mask1
+    mask = mask0
     
     # set my output img to zero everywhere except my mask
     output_img = image.copy()
@@ -220,9 +238,16 @@ while(True):
        print(res)
        if(stabilize>200):
            
-           confident=CountFrequency(occurence)
-           
-           check(confident,count)
+           if(res==10 or res==21 or res==20):
+               print("The predictted value is ",res,"The expected value is ",count)
+               check(res,count)
+               
+           else:
+               
+               confident=CountFrequency(occurence)
+               print("The predictted value is ",confident,"The expected value is ",count)
+               check(confident,count)
+    
     cv2.imshow("Result",image)
 
    
